@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>device</title>
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+        }
+        html, body {
+          height: 100%;
+          background-color: #222;
+          font-family: monospace;
+          font-size: 16px;
+        }
+        .container {
+          color: orange;
+          margin: 0 auto;
+          padding: 1em 10%;
+          word-break: break-all;
+        }
+        button  {
+          border: none;
+          color: #fff;
+          font-size: 1.2em;
+          background: #27e;
+          padding: 0.5em 0.75em 0.6em;
+          border-radius: .3em;
+          box-shadow: 0 .3em 0 #05c;
+          outline: none;
+          font-weight: bolder;
+        }
+        button:active {
+          transform: translateY(.3em);
+          box-shadow: none;
+        }
+        code {
+          display:block;
+          font-size:16px;
+        }
+        #fp, #time, #details-null {
+          color: yellow;
+        }
+        section {
+          margin: 2em 0 1em;
+        }
+        section article {
+          margin: 1em 0;
+        }
+        section article div{
+          text-indent: 4em;
+        }
+        section article div:last-child {
+          text-indent: 0;
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tip" style="position: absolute; top: 0; right: 0; border: 0;">
+      <a href="https://github.com/itwara/device">
+        <img
+          src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
+          alt="Fork me on GitHub"
+          style="width: 8em; height: 8em;"
+          data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+        />
+      </a>
+    </div>
+    <button type="button" id="btn">
+        Get my fingerprint
+    </button>
+    <section>
+      <article>
+        <h3>
+          Time took to calculate the fingerprint:  <span id="time">-</span>
+        </h3>
+      </article>
+      <article>
+          <h3>
+            Your browser fingerprint:  <span id="fp">-</span>
+          </h3>
+        </article>
+      <article>
+        <h3>Your browser device detail info is:  <span id="details-null">-</span></h3>
+        <div id="details"></div>
+      </article>
+    </section>
+  </div>
+  <script src="lib/fingerprint2.js"></script>
+  <script src="lib/PluginDetect-0.9.1.js"></script>
+  <script>
+    function onButtonClick() {
+      const queryStartTime = Date.now()
+      if (window.Fingerprint2) {
+        const fpInstance = new window.Fingerprint2()
+        fpInstance.get((fingerPrint, deviceInfos) => {
+          const queryEndTime = Date.now()
+          const timeString = `${queryEndTime - queryStartTime}ms`;
+          let detailString = ''
+
+          // 合并 PluginDetect 插件信息
+          for(const name in PluginDetect.Plugins){
+            const temp = {}
+            temp.key = name
+            temp.value = PluginDetect.getVersion(name);
+            deviceInfos.push(temp)
+          }
+
+          // 获取 device list
+          detailString = deviceInfos.sort((firstEl, secondEl) => {
+            return firstEl.value.toString().length - secondEl.value.toString().length
+          }).reduce((acc, item) => {
+            return `${acc}<code><span style="color: yellow;">${item.key}</span> = ${item.value}</code>`
+          }, '')
+
+          // 插入
+          const $fp = document.getElementById('fp')
+          const $time = document.getElementById('time')
+          const $detail = document.getElementById('details')
+          $fp && ($fp.innerHTML = fingerPrint)
+          $time && ($time.innerHTML = timeString)
+          $detail && ($detail.innerHTML = detailString) && (document.getElementById('details-null').style.display = 'none')
+        })
+      } else {
+          console.error('未正确加载fingerPrint库')
+      }
+    }
+
+    // add event
+    document.getElementById('btn').addEventListener('click', onButtonClick)
+  </script>
+</body>
+</html>
